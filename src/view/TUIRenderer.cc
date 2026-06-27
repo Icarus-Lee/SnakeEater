@@ -1,4 +1,6 @@
 #include "TUIRenderer.h"
+#include "../utils/ConsoleClear.h"
+#include "../utils/ConsoleColour.h"
 #include <iostream>
 
 TUIRenderer::TUIRenderer(char main_char, char border_char, char food_char,
@@ -7,45 +9,64 @@ TUIRenderer::TUIRenderer(char main_char, char border_char, char food_char,
       main_char_(main_char),
       border_char_(border_char),
       food_char_(food_char),
-      snake_char_(snake_char) {}
-
-void TUIRenderer::RenderMap(Map& map) {
-  for (int j = 0; j <= map.GetWidth() + 1; ++j) {
-    buffer_ += border_char_;
-  }
-  buffer_ += '\n';
-  for (int i = 0; i < map.GetHeight(); ++i) {
-    buffer_ += border_char_;
-    for (int j = 0; j < map.GetWidth(); ++j) {
-      buffer_ += main_char_;
-    }
-    buffer_ += border_char_;
-    buffer_ += '\n';
-  }
-  for (int j = 0; j <= map.GetWidth() + 1; ++j) {
-    buffer_ += border_char_;
-  }
+      snake_char_(snake_char) {
+  buffer_.reserve(4096);
 }
 
-void TUIRenderer::RenderSnake(Snake& snake, Map& map) {
-  std::deque<PointType> positions = snake.GetPositions();
-  for (auto& pos : positions) {
-    buffer_[(pos.x + 1) * (map.GetWidth() + 3) + pos.y + 1] = snake_char_;
+bool IsSnakeBody(int x, int y, const Snake& snake) {
+  const auto& positions = snake.GetPositions();
+  for (const auto& pos : positions) {
+    if (pos.x == x && pos.y == y)
+      return true;
   }
-}
-
-void TUIRenderer::RenderFood(Food& food, Map& map) {
-  if (!food.IfEaten()) {
-    PointType pos = food.GetPosition();
-    buffer_[(pos.x + 1) * (map.GetWidth() + 3) + pos.y + 1] = food_char_;
-  }
+  return false;
 }
 
 void TUIRenderer::Render(Map& map, Snake& snake, Food& food) {
-  std::cout << "\033[2J\033[1;1H";  // Clear the console
-  buffer_ = "";
-  RenderMap(map);
-  RenderSnake(snake, map);
-  RenderFood(food, map);
-  std::cout << buffer_ << std::endl;
+  ClearConsole();
+  buffer_.clear();
+  int       width     = map.GetWidth();
+  int       height    = map.GetHeight();
+  PointType food_pos  = food.GetPosition();
+
+  buffer_            += ConsoleColour::RED;
+  for (int j = 0; j < width + 2; ++j) {
+    buffer_ += border_char_;
+  }
+  buffer_ += ConsoleColour::RESET;
+  buffer_ += '\n';
+
+  for (int y = 0; y < height; ++y) {
+    buffer_ += ConsoleColour::RED;
+    buffer_ += border_char_;
+    buffer_ += ConsoleColour::RESET;
+
+    for (int x = 0; x < width; ++x) {
+      if (!food.IfEaten() && food_pos.x == y && food_pos.y == x) {
+        buffer_ += ConsoleColour::YELLOW;
+        buffer_ += food_char_;
+        buffer_ += ConsoleColour::RESET;
+      } else if (IsSnakeBody(y, x, snake)) {
+        buffer_ += ConsoleColour::GREEN;
+        buffer_ += snake_char_;
+        buffer_ += ConsoleColour::RESET;
+      } else {
+        buffer_ += main_char_;
+      }
+    }
+
+    buffer_ += ConsoleColour::RED;
+    buffer_ += border_char_;
+    buffer_ += ConsoleColour::RESET;
+    buffer_ += '\n';
+  }
+
+  buffer_ += ConsoleColour::RED;
+  for (int j = 0; j < width + 2; ++j) {
+    buffer_ += border_char_;
+  }
+  buffer_ += ConsoleColour::RESET;
+  buffer_ += '\n';
+
+  std::cout << buffer_;
 }

@@ -17,6 +17,7 @@ set(SOURCE_FILES
     src/model/Food.cc
     src/model/Map.cc
     src/view/TUIRenderer.cc
+    src/utils/ConsoleClear.cc
 )
 
 add_executable(SnakeEater ${SOURCE_FILES})

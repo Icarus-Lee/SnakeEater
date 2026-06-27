@@ -1,7 +1,6 @@
 #include "Snake.h"
 
 
-
 SnakeBody::SnakeBody(const PointType& point_start) {
   positions_.push_back(point_start);
 }
@@ -14,6 +13,10 @@ PointType SnakeBody::PopTail() {
   PointType tail = positions_.back();
   positions_.pop_back();
   return tail;
+}
+
+void SnakeBody::PushTail(const PointType& point) {
+  positions_.push_back(point);
 }
 
 const PointType& SnakeBody::GetHead() const {

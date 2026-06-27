@@ -15,6 +15,7 @@ class SnakeBody {
   const std::deque<PointType>& GetPositions() const;
   PointType                    PopTail();
   void                         PushHead(const PointType& point);
+  void                         PushTail(const PointType& point);
 };
 
 class Snake {
